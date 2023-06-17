@@ -8,8 +8,8 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class UserCreateRequest {
-	
-	private String username;
-	private String password;
-	private String passwordConfirm;
+
+    private String username;
+    private String password;
+    private String passwordConfirm;
 }

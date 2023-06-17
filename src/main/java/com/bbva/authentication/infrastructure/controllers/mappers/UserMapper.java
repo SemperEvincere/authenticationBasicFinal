@@ -8,14 +8,14 @@ import java.util.stream.Collectors;
 
 @Component
 public class UserMapper {
-	
-	public UserCreated toUserCreated(UserEntity userEntity) {
-		return UserCreated.builder()
-		                  .username(userEntity.getUsername())
-		                  .roles(userEntity.getRoles()
-		                                   .stream()
-		                                   .map(Enum::name)
-		                                   .collect(Collectors.toSet()))
-		                  .build();
-	}
+
+    public UserCreated toUserCreated(UserEntity userEntity) {
+        return UserCreated.builder()
+                .username(userEntity.getUsername())
+                .roles(userEntity.getRoles()
+                        .stream()
+                        .map(Enum::name)
+                        .collect(Collectors.toSet()))
+                .build();
+    }
 }

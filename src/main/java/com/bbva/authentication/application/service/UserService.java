@@ -3,9 +3,9 @@ package com.bbva.authentication.application.service;
 import com.bbva.authentication.application.repository.IUserRepository;
 import com.bbva.authentication.application.useCases.IUserUseCase;
 import com.bbva.authentication.domain.models.enums.UserRole;
+import com.bbva.authentication.infrastructure.controllers.request.UserCreateRequest;
 import com.bbva.authentication.infrastructure.entities.UserEntity;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -15,32 +15,61 @@ import java.util.Set;
 @Service
 @RequiredArgsConstructor
 public class UserService implements IUserUseCase {
-	private final PasswordEncoder passwordEncoder;
-	private final IUserRepository userRepository;
-	
-	public UserEntity newUser(UserEntity user) {
-		// Genera una sal aleatoria para el usuario
-		String salt = BCrypt.gensalt();
-		
-		// Crea el hash de la contraseña con la sal generada utilizando BCryptPasswordEncoder
-//		String hashedPassword = passwordEncoder.encode(user.getPassword() + salt);
-		String hashedPassword = BCrypt.hashpw(user.getPassword(), salt);
-		
-		// Almacena la sal y el hash en la base de datos
-		user.setPassword(hashedPassword);
-		user.setSalt(salt);
-		user.setRoles(Set.of(UserRole.USER));
-		
-		return userRepository.save(user);
-	}
-	
-	@Override
-	public Optional<UserEntity> findByUsername(String username) {
-		return userRepository.findByUsername(username);
-	}
-	
-	@Override
-	public Boolean authenticateUser(String username, String password) {
-		return userRepository.authenticateUser(username, password);
-	}
+    private final PasswordEncoder passwordEncoder;
+    private final IUserRepository userRepository;
+
+    public UserEntity newUser(UserCreateRequest user) {
+        if (userRepository.findByUsername(user.getUsername())
+                .isPresent()) {
+            throw new IllegalArgumentException("User already exists");
+        }
+        if (!user.getPassword()
+                .contentEquals(user.getPasswordConfirm())) {
+            throw new IllegalArgumentException("Passwords do not match");
+        }
+        UserEntity newUser = UserEntity.builder()
+                .username(user.getUsername())
+                .password(passwordEncoder.encode(user.getPassword()))
+                .roles(Set.of(UserRole.USER))
+                .build();
+        return userRepository.save(newUser);
+
+    }
+
+    @Override
+    public Optional<UserEntity> findByUsername(String username) {
+        return userRepository.findByUsername(username);
+    }
+
+    @Override
+    public Boolean authenticateUser(String username, String password) {
+        return userRepository.authenticateUser(username, password);
+    }
+
+    @Override
+    public void promoteUser(UserEntity user) {
+        user.getRoles()
+                .clear();
+        user.getRoles()
+                .add(UserRole.PROMOTED);
+        userRepository.save(user);
+    }
+
+    @Override
+    public UserEntity newAdmin(UserCreateRequest userCreateRequest) {
+        if (userRepository.findByUsername(userCreateRequest.getUsername())
+                .isPresent()) {
+            throw new IllegalArgumentException("User already exists");
+        }
+        if (!userCreateRequest.getPassword()
+                .contentEquals(userCreateRequest.getPasswordConfirm())) {
+            throw new IllegalArgumentException("Passwords do not match");
+        }
+        UserEntity newUser = UserEntity.builder()
+                .username(userCreateRequest.getUsername())
+                .password(passwordEncoder.encode(userCreateRequest.getPassword()))
+                .roles(Set.of(UserRole.ADMIN))
+                .build();
+        return userRepository.save(newUser);
+    }
 }

@@ -9,6 +9,9 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Size;
 import java.io.Serial;
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -23,56 +26,59 @@ import java.util.Set;
 @Getter
 @Setter
 public class UserEntity implements UserDetails {
-	
-	@Serial
-	private static final long serialVersionUID = 1L;
-	
-	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
-	private Long id;
-	
-	@Column(unique = true)
-	private String username;
-	
-	private String password;
-	
-	private String salt;
-	
-	@ElementCollection(fetch = FetchType.EAGER)
-	@Enumerated(EnumType.STRING)
-	private Set<UserRole> roles;
-	
-	@CreatedDate
-	private LocalDateTime createdAt;
-	
-	@Builder.Default
-	private LocalDateTime lastPasswordChange = LocalDateTime.now();
-	
-	@Override
-	public Collection<? extends GrantedAuthority> getAuthorities() {
-		return roles.stream()
-		            .map(userRole -> new SimpleGrantedAuthority("ROLE_" + userRole.name()))
-		            .toList();
-	}
-	
-	
-	@Override
-	public boolean isAccountNonExpired() {
-		return true;
-	}
-	
-	@Override
-	public boolean isAccountNonLocked() {
-		return true;
-	}
-	
-	@Override
-	public boolean isCredentialsNonExpired() {
-		return true;
-	}
-	
-	@Override
-	public boolean isEnabled() {
-		return true;
-	}
+
+    @Serial
+    private static final long serialVersionUID = 1L;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
+
+    @Column(unique = true)
+    @NotBlank
+    @Size(min = 3, max = 50)
+    private String username;
+    @NotBlank
+    private String password;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @Enumerated(EnumType.STRING)
+    @NotEmpty
+    private Set<UserRole> roles;
+
+    @CreatedDate
+    private LocalDateTime createdAt;
+
+    @Builder.Default
+    private LocalDateTime lastPasswordChange = LocalDateTime.now();
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return roles.stream()
+                .map(userRole -> new SimpleGrantedAuthority("ROLE_" + userRole.name()))
+                .toList();
+    }
+
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
+
+
 }

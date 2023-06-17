@@ -10,7 +10,7 @@ import java.util.Set;
 @AllArgsConstructor
 @Builder
 public class UserCreated {
-	
-	private String username;
-	private Set<String> roles;
+
+    private String username;
+    private Set<String> roles;
 }
